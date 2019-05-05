@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>IADT</title>
+
+	
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS"
+	 crossorigin="anonymous">
+	<link rel="stylesheet" type="text/css" href="styles.css"/>
+
+	<script src="lib/p5.js" type="text/javascript"></script>
+	<script src="lib/p5.dom.js" type="text/javascript"></script>
+	<script src="lib/vibrant.js" type="text/javascript"></script>
+	<script src="lib/chroma.min.js" type="text/javascript"></script>
+	<script src="01.js" type="text/javascript"></script>
+
+</head>
+<body>
+	<div class="container">
+		<div class="row">
+			<div class="col-8" id="canvasHolder"></div>
+			<div class="col-4" id="controlPanel">
+				<div class="row">
+					<div class="sliderContainer col-12" id="radiusSlider">Radius</div>
+				</div>
+				<div class="row">
+					<div class="sliderContainer col-12" id="cellSizeSlider">Density</div>
+				</div>
+				<div class="row">
+					<div class="sliderContainer col-12" id="textSizeSlider">Text Size</div>
+				</div>
+				<div class="row">
+					<div class="radioContainer col-6" id="groupRadio"></div>
+				</div>
+				<div class="row">
+					<div class="checkboxContainer col-12" id="fillCheckbox"></div>
+				</div>
+				<div class="row">
+					<div class="checkboxContainer col-12" id="animateCheckbox"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
