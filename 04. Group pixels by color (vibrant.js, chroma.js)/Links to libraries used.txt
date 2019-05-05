@@ -1,0 +1,5 @@
+https://github.com/akfish/node-vibrant/
+
+https://gka.github.io/chroma.js/
+
+https://www.npmjs.com/package/chroma-js

@@ -17,15 +17,34 @@ let animateChecked = false;
 let startArray = [];                                // arrays of start and finish points
 let finalArray = [];
 
+var palette = [];                                   // palette with 6 dominant colors of the color map
+
 let xNow;                                           // current position of each point
 let yNow;
 let counter = 0;                                    // animation step counter
 
 
 // ----------------------------------------------------------------------------------------------------------------
-function preload() {                                // preload the color map image and the text image font
-    map = loadImage('data/colorMap.png');           
-    font = loadFont('data/FreeSansBold.ttf');
+function preload() {                                                            
+    map = loadImage('data/colorMap.png');                                                    // preload color map          
+    font = loadFont('data/FreeSansBold.ttf');                                                // preload text font
+
+    Vibrant.from('data/colorMap.png').getPalette().then( p => {                              // get palette from color map
+
+        palette = [                                                                          // save as HEX palette
+            rgbToHex(p.DarkMuted._rgb[0], p.DarkMuted._rgb[1], p.DarkMuted._rgb[2]),
+            rgbToHex(p.DarkVibrant._rgb[0], p.DarkVibrant._rgb[1], p.DarkVibrant._rgb[2]),
+            rgbToHex(p.LightMuted._rgb[0], p.LightMuted._rgb[1], p.LightMuted._rgb[2]),
+            rgbToHex(p.LightVibrant._rgb[0], p.LightVibrant._rgb[1], p.LightVibrant._rgb[2]),
+            rgbToHex(p.Muted._rgb[0], p.Muted._rgb[1], p.Muted._rgb[2]),
+            rgbToHex(p.Vibrant._rgb[0], p.Vibrant._rgb[1], p.Vibrant._rgb[2])
+        ];
+                           
+        setupTextImg();                                                                      // setup text image
+        map.loadPixels();                                                                    // load the color map pixels
+        createArrays();                                                                      // create start and finish arrays
+    });
+
 }
 
 // ----------------------------------------------------------------------------------------------------------------
@@ -34,11 +53,11 @@ function setup() {
     var canvas = createCanvas(360, 360);
     canvas.parent("canvasHolder");
                                                             
-    radiusSlider = createSlider(1, cellSize, radius);           // control element and its initial value
-    radiusSlider.parent("radiusController");                    // location of the control element
-    radiusSlider.mouseReleased(update);                         // event handler
+    radiusSlider = createSlider(1, cellSize, radius);                  // control element and its initial value
+    radiusSlider.parent("radiusController");                           // location of the control element
+    radiusSlider.mouseReleased(update);                                // event handler
 
-    cellSizeSlider = createSlider(-20, -1, -cellSize);          // slider range from '20' to '1'
+    cellSizeSlider = createSlider(-20, -1, -cellSize);                 // slider range from '20' to '1'
     cellSizeSlider.parent("cellSizeController");
     cellSizeSlider.mouseReleased(update);
 
@@ -57,41 +76,49 @@ function setup() {
     animateCheckbox = createCheckbox('Animate', false);
     animateCheckbox.parent("animationController");
     animateCheckbox.changed(update);
-
-    setupTextImg();                                             // setup text image
-    map.loadPixels();                                           // load the color map pixels
-    createArrays();                                             // create start and finish arrays
 }
 
 // ----------------------------------------------------------------------------------------------------------------
 function createArrays() {
 
-    startArray = [];                                            // start point positions
-    finalArray = [];                                            // final point positions
+    startArray = [];                                                   // start point positions
+    finalArray = [];                                                   // final point positions
 
-    for (let y = 0; y < width; y += cellSize) {                 // use standard grid loop to populate arrays
+    for (let y = 0; y < width; y += cellSize) {                        // use standard grid loop to populate arrays
         for (let x = 0; x < width; x += cellSize) {
 
-            let i = (y * textImage.width + x) * 4;              // the index of left-top pixel of the cell 
+            let i = (y * textImage.width + x) * 4;                     // the index of left-top pixel of the cell 
 
-            if (textImage.pixels[i] != 255) {                   // set pixel color according to the same pixel of the map             
-                                                                // process only text pixels, not the background (255)                           
+            if (textImage.pixels[i] != 255) {                          // set pixel color according to the same pixel of the map             
+                                                                       // process only text pixels, not the background (255)                           
                 let r = map.pixels[i];                          
                 let g = map.pixels[i + 1];
                 let b = map.pixels[i + 2];
                 let a = map.pixels[i + 3];
                 var c = color(r, g, b, a);
 
+                var colour = rgbToHex(r, g, b);                        // hex color used to calculate distance between two colors                                        
+                var distance = 255;                                    // maximum distance between two colors in RGB cube
+                var nearestColor;                                      // index of nearest colour from the palette
+                palette.forEach((pColor, index) => {                   // find nearest pallete colour
+                    if(chroma.distance(colour, pColor) < distance) {   // chroma.js used to calculate colour distance
+                        distance = chroma.distance(colour, pColor);
+                        nearestColor = index;
+                    }
+                });
+
                 startArray.push({
-                    xPos: x + Math.round(random(-randomValue, randomValue)),               // randomize the start position
-                    yPos: y + Math.round(random(-randomValue, randomValue)),
-                    color: c
+                    xPos: x + random(-randomValue, randomValue),       // randomize the start position
+                    yPos: y + random(-randomValue, randomValue),
+                    color: c,
+                    nearest: nearestColor                              // the color group
                 });
 
                 finalArray.push({
                     xPos: x,
                     yPos: y,
-                    color: c
+                    color: c,
+                    nearest: nearestColor                              // the color group
                 });
             }
         }
@@ -177,7 +204,7 @@ function update() {
     loop();                                     // start looping 
 }
 
-// -----------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------------------
 function setupTextImg() {
     textImage = createGraphics(width, height);
     textImage.pixelDensity(1);
@@ -186,4 +213,13 @@ function setupTextImg() {
     textImage.textSize(textSize);
     textImage.text("ABC", 20, 50, 100, 100);
     textImage.loadPixels();
+}
+
+// ----------------------------------------------------------------------------------------------------------------
+function rgbToHex(r, g, b) {
+    return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+}
+function componentToHex(c) {
+    var hex = c.toString(16);
+    return hex.length == 1 ? "0" + hex : hex;
 }
